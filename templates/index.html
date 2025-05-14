@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Analysis Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        .drop-zone:hover {
+            border-color: #0d6efd;
+        }
+        .effect-card {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .effect-card:hover {
+            transform: translateY(-5px);
+        }
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .student-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .selected-file {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .selected-file.active {
+            display: block;
+        }
+        .video-preview {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+        .video-preview.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="student-info">
+            <h4>Student Information</h4>
+            <p class="mb-0">Name: Ali Asif</p>
+            <p class="mb-0">Roll Number: 65747</p>
+        </div>
+        
+        <h1 class="text-center mb-5">Video Analysis Tool</h1>
+        
+        <!-- Upload Section -->
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto">
+                <div class="drop-zone" id="dropZone">
+                    <h4>Drag & Drop Video Here</h4>
+                    <p class="text-muted">or</p>
+                    <input type="file" id="fileInput" class="d-none" accept=".mp4,.avi,.mov,.mkv">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Choose File
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selected File Info -->
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto">
+                <div class="selected-file" id="selectedFile">
+                    <h5>Selected Video:</h5>
+                    <p id="fileName" class="mb-2"></p>
+                    <video id="videoPreview" class="video-preview" controls>
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+
+        <!-- Effects Section -->
+        <div class="row mb-5" id="effectsSection" style="display: none;">
+            <div class="col-12">
+                <h3 class="mb-4">Video Processing Options</h3>
+                
+                <!-- Transformations -->
+                <div class="mb-5">
+                    <h4 class="mb-3 text-primary">Transformations</h4>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('rotate_90')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Rotate 90°</h5>
+                                    <p class="card-text">Rotate video clockwise</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('flip_horizontal')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Flip Horizontal</h5>
+                                    <p class="card-text">Flip video horizontally</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('flip_vertical')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Flip Vertical</h5>
+                                    <p class="card-text">Flip video vertically</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filtering -->
+                <div class="mb-5">
+                    <h4 class="mb-3 text-primary">Filtering</h4>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('blur')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Blur</h5>
+                                    <p class="card-text">Apply Gaussian blur effect</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('sharpen')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Sharpen</h5>
+                                    <p class="card-text">Enhance video sharpness</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('noise_reduction')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Noise Reduction</h5>
+                                    <p class="card-text">Reduce video noise</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Convolution -->
+                <div class="mb-5">
+                    <h4 class="mb-3 text-primary">Convolution</h4>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('edge_detection')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Edge Detection</h5>
+                                    <p class="card-text">Detect edges in the video</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('emboss')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Emboss</h5>
+                                    <p class="card-text">Apply emboss effect</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('cartoon')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Cartoon</h5>
+                                    <p class="card-text">Convert to cartoon style</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Effects -->
+                <div class="mb-5">
+                    <h4 class="mb-3 text-primary">Effects</h4>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('grayscale')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Grayscale</h5>
+                                    <p class="card-text">Convert video to grayscale</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('sepia')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Sepia</h5>
+                                    <p class="card-text">Apply sepia tone effect</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card effect-card" onclick="processVideo('invert')">
+                                <div class="card-body">
+                                    <h5 class="card-title">Invert Colors</h5>
+                                    <p class="card-text">Invert video colors</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Processing Overlay -->
+        <div class="processing-overlay" id="processingOverlay">
+            <div class="text-center text-white">
+                <div class="spinner-border mb-3" role="status"></div>
+                <h4>Processing Video...</h4>
+                <p>This may take a few minutes depending on the video size</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFile = null;
+
+        // Handle file selection
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        document.getElementById('dropZone').addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        document.getElementById('dropZone').addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const file = e.dataTransfer.files[0];
+            handleFile(file);
+        });
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            handleFile(file);
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            
+            // Show selected file info
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('selectedFile').classList.add('active');
+            
+            // Create video preview
+            const videoPreview = document.getElementById('videoPreview');
+            videoPreview.src = URL.createObjectURL(file);
+            videoPreview.classList.add('active');
+            
+            const formData = new FormData();
+            formData.append('video', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                currentFile = data.filename;
+                document.getElementById('effectsSection').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while uploading the file');
+            });
+        }
+
+        function processVideo(effect) {
+            if (!currentFile) return;
+
+            document.getElementById('processingOverlay').style.display = 'flex';
+
+            fetch('/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    filename: currentFile,
+                    effect: effect
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                window.location.href = `/download/${data.output_file}`;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while processing the video');
+            })
+            .finally(() => {
+                document.getElementById('processingOverlay').style.display = 'none';
+            });
+        }
+    </script>
+</body>
+</html> 
