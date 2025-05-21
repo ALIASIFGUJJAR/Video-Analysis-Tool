@@ -1,0 +1,25 @@
+# 1. Initialize Git (if you haven't already)
+git init
+
+# 2. Add the Remote Repository (replace the URL with your actual repo URL)
+git remote add origin https://github.com/ALIASIFGUJJAR/Video-Analysis-Tool.git
+
+# 3. Add Files to Staging
+git add .
+
+# 4. Commit Your Changes
+git commit -m "Initial commit"
+
+# 5. Push to GitHub (first push)
+git branch -M main
+git push -u origin main
+
+# 6. Verify on GitHub
+# Go to your repository page and refresh. You should see your files there.
+
+# 7. For future changes (next pushes)
+git add .
+git commit -m "Describe what you changed"
+git push
+
+# Repeat these three commands every time you make new changes you want to upload to GitHub. 
